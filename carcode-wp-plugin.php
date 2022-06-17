@@ -28,139 +28,222 @@
    limitations under the License. 
  */
 
-if (!defined('ABSPATH')){
-    exit;
+if (!defined("ABSPATH")) {
+  exit;
 }
 
-add_action('admin_menu', 'carcode_wp_plugin_add_admin_menu');
-add_action('admin_init', 'carcode_wp_plugin_settings_init');
+add_action("admin_menu", "carcode_wp_plugin_add_admin_menu", 1);
+add_action("admin_init", "carcode_wp_plugin_settings_init", 2);
 
-function carcode_wp_plugin_add_admin_menu() {
-    add_menu_page(
-        'CarCode Widget',
-        'CarCode Widget Config',
-        'manage_options',
-        'carcode_wp_plugin',
-        'carcode_wp_plugin_options_page',
-    );
+function carcode_wp_plugin_add_admin_menu()
+{
+  add_menu_page(
+    "CarCode Widget",
+    "CarCode Widget Config",
+    "manage_options",
+    "carcode_wp_plugin",
+    "carcode_wp_plugin_options_page",
+    "dashicons-car",
+    20
+  );
 }
 
-function carcode_wp_plugin_settings_init(){
-    register_setting('carcode_wp_plugin_page', 'carcode_wp_plugin_settings', 'carcode_wp_plugin_validate');
+function carcode_wp_plugin_settings_init()
+{
+  register_setting("carcode_wp_plugin_page", "carcode_wp_plugin_settings", "carcode_wp_plugin_validate");
 
-    add_settings_section(
-        'carcode_wp_plugin_page_section',
-        'CarCode Widget',
-        'carcode_wp_plugin_settings_section_callback',
-        'carcode_wp_plugin_page'
-    );
+  add_settings_section(
+    "carcode_wp_plugin_page_section",
+    "CarCode WordPress Plugin",
+    "carcode_wp_plugin_settings_section_callback",
+    "carcode_wp_plugin_page"
+  );
 
-    add_settings_field(
-        'carcode_wp_plugin_widget_type',
-        'CarCode Widget Type',
-        'carcode_wp_plugin_widget_type_render',
-        'carcode_wp_plugin_page',
-        'carcode_wp_plugin_page_section'
-    );
+  add_settings_field(
+    "carcode_wp_plugin_widget_type",
+    "CarCode Widget Type",
+    "carcode_wp_plugin_widget_type_render",
+    "carcode_wp_plugin_page",
+    "carcode_wp_plugin_page_section"
+  );
 
-    add_settings_field(
-        'carcode_wp_plugin_widget_slug',
-        'ID',
-        'carcode_wp_plugin_widget_slug_render',
-        'carcode_wp_plugin_page',
-        'carcode_wp_plugin_page_section'
-    );
+  add_settings_field(
+    "carcode_wp_plugin_carcode_id",
+    "CarCode ID",
+    "carcode_wp_plugin_carcode_id_render",
+    "carcode_wp_plugin_page",
+    "carcode_wp_plugin_page_section"
+  );
+
+  add_settings_field(
+    "carcode_wp_plugin_eas_id",
+    "Content-Container (EAS) ID",
+    "carcode_wp_plugin_eas_id_render",
+    "carcode_wp_plugin_page",
+    "carcode_wp_plugin_page_section"
+  );
 }
 
-function carcode_wp_plugin_validate($input) {
-    return array_map('wp_filter_nohtml_kses', (array)$input);
+function carcode_wp_plugin_validate($input)
+{
+  return array_map("wp_filter_nohtml_kses", (array)$input);
 }
 
-function carcode_wp_plugin_widget_type_render() {
-    $options = get_option('carcode_wp_plugin_settings');
-    ?>
-    <input id="id_widget_type" type="radio" name="carcode_wp_plugin_settings[carcode_wp_plugin_type]" value="id" <?php checked('id', $options['carcode_wp_plugin_type']) ?>>
-    <label for="id_widget_type">Dealer Id</label><br/>
-    <input id="slug_widget_type" type="radio" name="carcode_wp_plugin_settings[carcode_wp_plugin_type]" value="slug" <?php checked('slug', $options['carcode_wp_plugin_type']) ?>>
-    <label for="slug_widget_type">Widget Slug Id</label>
-    <?php
+function carcode_wp_plugin_widget_type_render()
+{
+  $options = get_option("carcode_wp_plugin_settings");
+  $widget_type_option = $options["carcode_wp_plugin_widget_type"];
+  $radio_group_name = "carcode_wp_plugin_settings[carcode_wp_plugin_widget_type]";
+?>
+  <input id="id_widget_type" type="radio" name="<?= $radio_group_name; ?>" value="dealerId" <?= checked("dealerId", $widget_type_option) ?>>
+  <label for="id_widget_type">Dealer Id</label><br />
+  <input id="slug_widget_type" type="radio" name="<?= $radio_group_name; ?>" value="slugId" <?= checked("slugId", $widget_type_option)?>>
+  <label for="slug_widget_type">Widget Slug Id</label>
+<?php
 }
 
-function carcode_wp_plugin_widget_slug_render() {
-    $options = get_option('carcode_wp_plugin_settings');
-    ?>
-    <input type="text" name="carcode_wp_plugin_settings[carcode_wp_plugin_widget_slug]" value="<?php echo sanitize_text_field($options['carcode_wp_plugin_widget_slug']);?>">
-    <?php
+function carcode_wp_plugin_eas_id_render()
+{
+  $options = get_option("carcode_wp_plugin_settings");
+  $eas_id_setting = sanitize_text_field($options["carcode_wp_plugin_eas_id"]);
+?>
+  <input type="text" name="carcode_wp_plugin_settings[carcode_wp_plugin_eas_id]" value="<?= $eas_id_setting; ?>">
+  <span>(leave blank to disable)</span>
+<?php
 }
 
-function carcode_wp_plugin_settings_section_callback() {
-    echo <<<EOT
-<p>The CarCode Widget slug ID is a value that is provided by the Widgets Implementation team.<br/>
-This plugin adds the CarCode widget to every page on a WordPress website.</p>
 
-<p>To add the widget on specific pages (SRP, VDP, etc) modify the theme and add the following snippet to your files replacing <code>[id]</code> with your Slug or dealer Id.</p>
+function carcode_wp_plugin_carcode_id_render()
+{
+  $options = get_option("carcode_wp_plugin_settings");
+  $carcode_id_setting = sanitize_text_field($options["carcode_wp_plugin_carcode_id"]);
+?>
+  <input type="text" name="carcode_wp_plugin_settings[carcode_wp_plugin_carcode_id]" value="<?= $carcode_id_setting; ?>">
+  <span>(leave blank to disable)</span>
+<?php
+}
 
-<h3>How do I know if I have been provided a Dealer Id or a widget Slug?</h3>
-Typically a Slug will be alphanumeric e.g. a1b2c3.
-A Dealer Id will be numeric e.g. 123456
+function carcode_wp_plugin_settings_section_callback()
+{
+  echo <<<EOT
+<p>Thank you for using the CarCode WordPress Plugin. This plugin allows you to add the CarCode widget script<br/>
+to your wordpress site as well as the Content-Container script.</p>
+
+<h3>How to get Started</h3>
+<p>In order to enable the CarCode widget or Content-Container scripts you should have received some Ids<br/>
+from an Edmunds Implementation Specialist.
+<em>This plugin adds the Script(s) to every page on a WordPress website.</em><br/>
+To add the widget on specific pages (SRP, VDP, etc) modify your site's theme files (e.g. "header.php")<br/>
+and add the following snippet to your files replacing <code>PLACEHOLDER</code> with the provided Id(s)</p>
+
+<h3>For CarCode, how do I know if I have been provided a Dealer Id or a widget Slug Id?</h3>
+Typically a Slug will be alphanumeric e.g. <code>a1b2c3</code>.<br/>
+A Dealer Id will be numeric e.g. <code>123456</code>.<br/>
 
 
-<strong>Slug Snippet</strong>
+<h3>Adding the CarCode Widget snippet manually:</h3>
+<p>Typically a Content-Container (EAS) Id will be a numeric value e.g. <code>123456</code></p>
+
+<strong>Slug Id Snippet</strong><br/>
 <pre>
- &lt;script src='https://www.carcodesms.com/widgets/s/[slug].js' type='text/javascript' async defer &gt;&lt;/script&gt;
-</pre>
+ &lt;script src="https://www.carcodesms.com/widgets/s/PLACEHOLDER.js" type="text/javascript" async defer &gt;&lt;/script&gt;
+</pre><br/>
 
-<strong>Dealer ID Snippet</strong>
+<strong>Dealer ID Snippet</strong><br/>
 <pre>
- &lt;script src='https://www.carcodesms.com/widgets/[id].js' type='text/javascript' async defer &gt;&lt;/script&gt;
-</pre>
+ &lt;script src="https://www.carcodesms.com/widgets/PLACEHOLDER.js" type="text/javascript" async defer &gt;&lt;/script&gt;
+</pre><br/>
 
 <p>For configuring the widget through the SDK review the <br/>
 <a herf="https://github.com/CarcodeSMS/cc-sdk-documentation">CarCode SDK Documentation</a>
 </p>
+
+<h3>Adding the Content-Container (EAS) script manually:</h3>
+<strong>content-container (EAS) script</strong><br/>
+<pre>
+ &lt;script src="https://content-container.edmunds.com/PLACEHOLDER.js" type="text/javascript" async defer &gt;&lt;/script&gt;
+</pre><br/>
+<hr/>
+<h2>Plugin Configuration:</h2>
+<p>
+To enable the CarCode widget select the widget id type (Dealer Id or Widget Slug Id) and enter the provided id in the CarCode ID text box.<br/>
+To disable the CarCode widget leave the CarCode ID text box blank.</p>
+<p>
+To enable the Content-Container (EAS) script add the provided Content-Container ID in the EAS ID text box.<br/>
+To disable the Content-Container (EAS) script leave the EAS ID text box blank.
+</p>
 EOT;
 }
 
-function carcode_wp_plugin_options_page() {
-    ?>
-    <form action="options.php" method="post">
-        <?php
-        settings_fields('carcode_wp_plugin_page');
-        do_settings_sections('carcode_wp_plugin_page');
-        submit_button();
-        ?>
-    </form>
+function carcode_wp_plugin_options_page()
+{
+?>
+  <form action="options.php" method="post">
     <?php
+    settings_fields("carcode_wp_plugin_page");
+    do_settings_sections("carcode_wp_plugin_page");
+    submit_button();
+    ?>
+  </form>
+<?php
 }
 
-add_action('wp_head', 'carcode_wp_plugin_add_js_snippet');
+function carcode_wp_plugin_build_carcode_url($type)
+{
+  $url = "https://www.carcodesms.com/widgets/";
 
-function carcode_wp_plugin_build_url($type) {
-    $url = "https://www.carcodesms.com/widgets/";
+  if ($type == "slug") {
+    $url .= "s/";
+  }
 
-    if ($type == 'slug') {
-        $url .= 's/';
+  return $url;
+}
+
+function carcode_wp_plugin_info()
+{
+  $options = get_option("carcode_wp_plugin_settings");
+  $eas_id_setting = $options["carcode_wp_plugin_eas_id"];
+  $widget_type_setting = $options["carcode_wp_plugin_widget_type"];
+  $carcode_id_setting = $options["carcode_wp_plugin_carcode_id"];
+?>
+  <script type="text/javascript">
+    window.__carcode_wp_plugin = {
+      version: 'v1.2.0',
+     easId: '<?= isset($eas_id_setting) && !empty($eas_id_setting) ? $eas_id_setting : "No EAS id set" ?>',
+      widgetType: '<?= isset($widget_type_setting) && !empty($widget_type_setting) ? $widget_type_setting : "No widget type set" ?>',
+      carcodeId: '<?= isset($carcode_id_setting) && !empty($carcode_id_setting) ? $carcode_id_setting : "No CarCode id set" ?>'
     }
-
-    return $url;
+  </script>
+  <?php
 }
 
-function carcode_wp_plugin_add_js_snippet() {
-    $options = get_option('carcode_wp_plugin_settings');
-    $widget_slug = sanitize_text_field($options['carcode_wp_plugin_widget_slug']);
-    $widget_type = $options['carcode_wp_plugin_type'];
+function carcode_wp_plugin_add_eas_js_snippet()
+{
+  $options = get_option("carcode_wp_plugin_settings");
+  $eas_id_setting = sanitize_text_field($options["carcode_wp_plugin_eas_id"]);
+  if (isset($eas_id_setting) && !empty($eas_id_setting)) {
+  ?>
+    <script src="https://content-container.edmunds.com/<?= $eas_id_setting; ?>.js" type="text/javascript" async defer</script>
+      <?php
+    }
+  }
 
-    $url = carcode_wp_plugin_build_url($widget_type);
+  function carcode_wp_plugin_add_carcode_js_snippet()
+  {
+    $options = get_option("carcode_wp_plugin_settings");
+    $carcode_id_setting = sanitize_text_field($options["carcode_wp_plugin_carcode_id"]);
+    $widget_type_setting = $options["carcode_wp_plugin_widget_type"];
+
+    $url = carcode_wp_plugin_build_carcode_url($widget_type_setting);
 
 
-    if (!is_null($widget_slug)) {
-        ?>
-        <script
-                src='<?php echo $url . $widget_slug ?>.js'
-                type='text/javascript'
-                async
-                defer
-        ></script>
+    if (isset($carcode_id_setting) && !empty($carcode_id_setting)) {
+      ?> 
+      <script src="<?= $url . $carcode_id_setting; ?>.js" type = "text/javascript" async defer ></script>
         <?php
-    }
-}
+      }
+  }
+
+  add_action("wp_head", "carcode_wp_plugin_add_carcode_js_snippet", 3);
+  add_action("wp_head", "carcode_wp_plugin_add_eas_js_snippet", 4);
+  add_action("wp_head", "carcode_wp_plugin_info", 10);
